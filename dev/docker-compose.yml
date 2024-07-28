@@ -1,0 +1,27 @@
+name: achiet
+
+services:
+  web:
+    image: node:22-alpine
+    working_dir: "$PWD/web"
+    volumes:
+      - "$PWD:$PWD"
+      - "$PWD/.data/yarn:/home/node/.cache/yarn"
+
+  rust:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM rust:1.80-alpine
+        RUN apk --no-cache add build-base
+        RUN rustup component add rustfmt
+    working_dir: "$PWD"
+    volumes:
+      - "$PWD:$PWD"
+      - "$PWD/.data/cargo:/usr/local/cargo/registry"
+
+  migrate:
+    image: arigaio/atlas
+    working_dir: "$PWD"
+    volumes:
+      - "$PWD:$PWD"

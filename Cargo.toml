@@ -10,6 +10,8 @@ argon2 = "0.5.2"
 axum = { version = "0.7.3", features = ["query"] }
 chrono = { version = "0.4.31", features = ["serde"] }
 jsonwebtoken = "9.2.0"
+reqwest = "0.12.5"
+scraper = "0.19.1"
 serde = "1.0.194"
 serde_json = "1.0.111"
 sqlx = { version = "0.7.3", features = ["sqlite", "chrono", "runtime-tokio"] }

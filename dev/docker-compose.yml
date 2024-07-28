@@ -15,7 +15,10 @@ services:
         FROM rust:1.80-alpine
         RUN apk --no-cache add build-base
         RUN rustup component add rustfmt
+        RUN apk add --no-cache pkgconf openssl-dev
     working_dir: "$PWD"
+    environment:
+      - RUSTFLAGS=-C target-feature=-crt-static
     volumes:
       - "$PWD:$PWD"
       - "$PWD/.data/cargo:/usr/local/cargo/registry"

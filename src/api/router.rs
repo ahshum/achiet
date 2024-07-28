@@ -20,6 +20,7 @@ pub fn new_handler(app_state: AppState, config: Config) -> axum::Router {
         ]);
 
     let mut router = axum::Router::new()
+        .route("/metatag", get(api::metatag::fetch))
         .route("/register", post(api::user::create))
         .route("/auth", post(api::user::create_token))
         .nest(

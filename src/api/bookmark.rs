@@ -8,10 +8,8 @@ use crate::{
     model::{Bookmark, Tag, TaggedItem, TaggedType, BOOKMARK_TABLE},
 };
 use axum::{
-    extract::{Extension, Json, Path, Query, Request},
+    extract::{Extension, Json, Path, Query},
     http::StatusCode,
-    middleware::Next,
-    response::Response,
 };
 use chrono::{offset::Utc, DateTime};
 use serde::{Deserialize, Serialize};

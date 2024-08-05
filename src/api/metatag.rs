@@ -1,4 +1,7 @@
-use axum::{extract::Json, http::StatusCode};
+use axum::{
+    extract::{Json, Query},
+    http::StatusCode,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
@@ -14,7 +17,7 @@ pub struct Metatag {
 }
 
 pub async fn fetch(
-    Json(payload): Json<MetatagsRequest>,
+    Query(payload): Query<MetatagsRequest>,
 ) -> Result<Json<Metatag>, (StatusCode, String)> {
     let html = reqwest::get(payload.url.as_str())
         .await

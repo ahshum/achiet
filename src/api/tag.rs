@@ -331,17 +331,42 @@ pub async fn delete_tagged_items(
     Ok(tagged_items)
 }
 
-#[derive(Hash, Eq, Clone)]
+#[derive(Clone)]
 struct TaggedItemCmp {
     id: String,
     ref_id: String,
     tag_id: String,
     value: Option<String>,
+    order: usize,
 }
 
 impl PartialEq for TaggedItemCmp {
     fn eq(&self, other: &Self) -> bool {
-        self.tag_id == other.tag_id && self.ref_id == other.tag_id
+        self.tag_id == other.tag_id && self.ref_id == other.ref_id
+    }
+}
+
+impl Eq for TaggedItemCmp {}
+
+impl std::hash::Hash for TaggedItemCmp {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: std::hash::Hasher,
+    {
+        self.tag_id.hash(state);
+        self.ref_id.hash(state);
+    }
+}
+
+impl TaggedItemCmp {
+    fn with_order(item: TaggedItem, order: usize) -> Self {
+        Self {
+            id: item.id,
+            ref_id: item.ref_id,
+            tag_id: item.tag_id,
+            value: item.value,
+            order,
+        }
     }
 }
 
@@ -352,6 +377,7 @@ impl From<TaggedItem> for TaggedItemCmp {
             ref_id: item.ref_id,
             tag_id: item.tag_id,
             value: item.value,
+            order: 0,
         }
     }
 }
@@ -372,6 +398,8 @@ pub async fn sync_tagged_items(
     tagged_type: TaggedType,
     item_inputs: Vec<TaggedItem>,
 ) -> Result<Vec<TaggedItem>, ()> {
+    use itertools::Itertools;
+
     let exist_items = find_tagged_items(
         app_state,
         tagged_type.clone(),
@@ -392,7 +420,8 @@ pub async fn sync_tagged_items(
     let input_set = item_inputs
         .clone()
         .into_iter()
-        .map(|item| TaggedItemCmp::from(item))
+        .enumerate()
+        .map(|(index, item)| TaggedItemCmp::with_order(item, index))
         .collect::<HashSet<_>>();
     let exist_set = exist_items
         .clone()
@@ -403,6 +432,16 @@ pub async fn sync_tagged_items(
     let update_items_iter = input_set.intersection(&exist_set);
     let delete_items_iter = exist_set.difference(&input_set);
 
+    if log::log_enabled!(log::Level::Debug) {
+        let map_item = |t: &TaggedItemCmp| t.tag_id.clone();
+        log::debug!(
+            "sync tagged items\ncreated {:?}\nupdated {:?}\ndeleted {:?}",
+            create_items_iter.clone().map(map_item).collect::<Vec<_>>(),
+            update_items_iter.clone().map(map_item).collect::<Vec<_>>(),
+            delete_items_iter.clone().map(map_item).collect::<Vec<_>>()
+        );
+    }
+
     let mut result: Vec<TaggedItem> = Vec::new();
     if create_items_iter.clone().count() > 0 {
         let mut created_items = create_tagged_items(
@@ -410,6 +449,7 @@ pub async fn sync_tagged_items(
             tagged_type.clone(),
             create_items_iter
                 .cloned()
+                .sorted_by_key(|cmp| cmp.order)
                 .map(|cmp| cmp.into())
                 .collect::<Vec<_>>(),
         )

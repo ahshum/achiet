@@ -17,6 +17,7 @@ pub fn new_handler(app_state: AppState, config: Config) -> axum::Router {
         .allow_headers([
             axum::http::header::AUTHORIZATION,
             axum::http::header::ACCEPT,
+            axum::http::header::CONTENT_TYPE,
         ]);
 
     let mut router = axum::Router::new()

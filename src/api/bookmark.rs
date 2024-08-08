@@ -1,11 +1,9 @@
+use super::{router::Config, state::AuthenticationState};
 use crate::{
-    api::{
-        state::AuthenticationState,
-        tag::{find_tagged_data_from_refs, sync_tagged_data_from_ref, TaggedData},
-    },
     app::{util, AppState},
     database::Connection,
     model::{Bookmark, Tag, TaggedItem, TaggedType, BOOKMARK_TABLE},
+    repo,
 };
 use axum::{
     extract::{Extension, Json, Path, Query},
@@ -95,7 +93,7 @@ impl From<Bookmark> for BookmarkResponse {
 }
 
 impl BookmarkResponse {
-    fn with_tags(bookmark: Bookmark, tag_data: Vec<TaggedData>) -> Self {
+    fn with_tags(bookmark: Bookmark, tag_data: Vec<repo::tag::TaggedData>) -> Self {
         Self {
             id: bookmark.id,
             title: bookmark.title,
@@ -123,7 +121,7 @@ pub async fn list(
     .await
     .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "".to_string()))?;
 
-    let tagged_result = find_tagged_data_from_refs(
+    let tagged_result = repo::tag::find_tagged_data_from_refs(
         &app_state,
         TaggedType::Bookmark,
         bookmarks.clone().into_iter().map(|b| b.id).collect(),
@@ -157,11 +155,14 @@ pub async fn find(
     .await
     .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "".to_string()))?;
 
-    let owned_tags =
-        find_tagged_data_from_refs(&app_state, TaggedType::Bookmark, vec![bookmark.id.clone()])
-            .await
-            .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "".to_string()))
-            .map(|result| result.find_tags(bookmark.id.clone()))?;
+    let owned_tags = repo::tag::find_tagged_data_from_refs(
+        &app_state,
+        TaggedType::Bookmark,
+        vec![bookmark.id.clone()],
+    )
+    .await
+    .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "".to_string()))
+    .map(|result| result.find_tags(bookmark.id.clone()))?;
 
     Ok(Json(BookmarkResponse::with_tags(bookmark, owned_tags)))
 }
@@ -213,7 +214,7 @@ pub async fn create(
         .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "".to_string()))?;
 
     let owned_tags = if let Some(tag_inputs) = payload.tags {
-        sync_tagged_data_from_ref(
+        repo::tag::sync_tagged_data_from_ref(
             &app_state,
             auth.user_id().unwrap(),
             TaggedType::Bookmark,
@@ -222,7 +223,7 @@ pub async fn create(
                 .clone()
                 .into_iter()
                 .map(|s| {
-                    TaggedData(
+                    repo::tag::TaggedData(
                         Tag::from_path(s),
                         TaggedItem {
                             ref_id: bookmark.id.clone(),
@@ -292,7 +293,7 @@ pub async fn update(
         .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "".to_string()))?;
 
     let owned_tags = if let Some(tag_inputs) = payload.tags {
-        sync_tagged_data_from_ref(
+        repo::tag::sync_tagged_data_from_ref(
             &app_state,
             auth.user_id().unwrap(),
             TaggedType::Bookmark,
@@ -301,7 +302,7 @@ pub async fn update(
                 .clone()
                 .into_iter()
                 .map(|s| {
-                    TaggedData(
+                    repo::tag::TaggedData(
                         Tag::from_path(s),
                         TaggedItem {
                             ref_id: bookmark.id.clone(),

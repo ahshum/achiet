@@ -1,4 +1,4 @@
-use crate::database::value::{Value, Values};
+use super::value::{Value, Values};
 
 #[derive(Debug, Clone)]
 pub struct Column(pub String, pub Value);

@@ -1,7 +1,5 @@
-use crate::{
-    api::{self, state::AuthenticationState},
-    app::AppState,
-};
+use super::state::AuthenticationState;
+use crate::app::AppState;
 
 #[derive(Clone, Default)]
 pub struct Config {
@@ -21,46 +19,49 @@ pub fn new_handler(app_state: AppState, config: Config) -> axum::Router {
         ]);
 
     let mut router = axum::Router::new()
-        .route("/metatag", get(api::metatag::fetch))
-        .route("/register", post(api::user::create))
-        .route("/auth", post(api::user::create_token))
+        .route("/metatag", get(super::metatag::fetch))
+        .route("/register", post(super::user::create))
+        .route("/auth", post(super::user::create_token))
         .nest(
             "/",
             axum::Router::new()
                 .nest(
                     "/user",
                     axum::Router::new()
-                        .route("/", get(api::user::list).post(api::user::create))
+                        .route("/", get(super::user::list).post(super::user::create))
                         .route(
                             "/:user_id",
-                            get(api::user::find)
-                                .put(api::user::update)
-                                .delete(api::user::delete),
+                            get(super::user::find)
+                                .put(super::user::update)
+                                .delete(super::user::delete),
                         ),
                 )
                 .nest(
                     "/bookmark",
                     axum::Router::new()
-                        .route("/", get(api::bookmark::list).post(api::bookmark::create))
+                        .route(
+                            "/",
+                            get(super::bookmark::list).post(super::bookmark::create),
+                        )
                         .route(
                             "/:bookmark_id",
-                            get(api::bookmark::find)
-                                .put(api::bookmark::update)
-                                .delete(api::bookmark::delete),
+                            get(super::bookmark::find)
+                                .put(super::bookmark::update)
+                                .delete(super::bookmark::delete),
                         ),
                 )
                 .nest(
                     "/tag",
                     axum::Router::new()
-                        .route("/", get(api::tag::list).post(api::tag::create))
+                        .route("/", get(super::tag::list).post(super::tag::create))
                         .route(
                             "/:tag_id",
-                            get(api::tag::find)
-                                .put(api::tag::update)
-                                .delete(api::tag::delete),
+                            get(super::tag::find)
+                                .put(super::tag::update)
+                                .delete(super::tag::delete),
                         ),
                 )
-                .route_layer(axum::middleware::from_fn(api::user::authenticate)),
+                .route_layer(axum::middleware::from_fn(super::user::authenticate)),
         );
 
     router = router

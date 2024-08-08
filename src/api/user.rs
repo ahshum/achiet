@@ -1,6 +1,5 @@
+use super::{router::Config, state::AuthenticationState};
 use crate::{
-    api::router::Config,
-    api::state::AuthenticationState,
     app::{util, AppState},
     database::Connection,
     hash::{hash_password, verify_password},

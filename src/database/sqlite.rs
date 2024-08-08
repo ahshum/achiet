@@ -1,4 +1,4 @@
-use crate::database::{
+use super::{
     db::Connection,
     query::{Column, ColumnIndex, Query, Row},
     value::{Value, Values},

@@ -1,8 +1,7 @@
-use crate::database::{
+use super::{
     query::{Query, Row},
     sqlite::SqliteConnection,
 };
-use trait_variant;
 
 #[derive(Clone)]
 pub enum Database {

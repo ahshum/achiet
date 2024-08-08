@@ -3,7 +3,6 @@ use crate::{api, app::AppState, model, repo};
 pub enum Task {
     Empty,
     TagUpdated(model::Tag),
-    BookmarkUpdated(String),
 }
 
 impl Task {

@@ -131,6 +131,7 @@ table "tag" {
     type     = int
     unsigned = true
     null     = false
+    default  = 0
   }
   column "value_type" {
     type = varchar(20)
@@ -195,6 +196,12 @@ table "bookmark_tagging" {
   column "value" {
     type = text
     null = true
+  }
+  column "order_index" {
+    type     = int
+    unsigned = true
+    null     = false
+    default  = 0
   }
 
   primary_key {

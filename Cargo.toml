@@ -8,8 +8,10 @@ argon2 = "0.5.3"
 axum = { version = "0.7.7", features = ["tokio", "http1", "http2", "json"] }
 chrono = { version = "0.4.38", features = ["serde"] }
 env_logger = "0.11.5"
+futures = "0.3.31"
 jsonwebtoken = "9.3.0"
 log = "0.4.22"
+rand_core = { version = "0.6.4", features = ["getrandom"] }
 serde = "1.0.210"
 serde_json = "1.0.128"
 sqlx = { version = "0.8.2", features = ["chrono", "runtime-tokio", "sqlite"] }

@@ -8,7 +8,7 @@ pub struct Tag {
     pub prefix: String,
     pub name: String,
     pub label: Option<String>,
-    pub parent_id: Option<String>,
+    pub parent_id: Option<field::Id>,
     pub depth: usize,
     pub value_type: TagValueType,
     pub user_id: String,

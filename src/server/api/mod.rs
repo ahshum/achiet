@@ -53,7 +53,7 @@ pub fn with_state(state: AppState) -> axum::Router {
         .layer(axum::Extension(state))
         .layer(
             tower_http::cors::CorsLayer::new()
-                .allow_headers([http::header::HeaderName::from_static("authorization")])
+                .allow_headers(tower_http::cors::Any)
                 .allow_methods(tower_http::cors::Any)
                 .allow_origin(tower_http::cors::Any),
         )

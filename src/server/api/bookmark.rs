@@ -12,6 +12,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BookmarkResponse {
     pub id: field::Id,
     pub url: String,
@@ -102,6 +103,7 @@ impl std::fmt::Display for TaggingResponse {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BookmarkRequest {
     pub url: Option<String>,
     pub title: Option<String>,

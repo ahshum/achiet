@@ -7,6 +7,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TagResponse {
     pub id: field::Id,
     pub path: String,
@@ -51,6 +52,7 @@ impl From<Tag> for TagResponse {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TagRequest {
     pub path: Option<String>,
     pub label: Option<String>,

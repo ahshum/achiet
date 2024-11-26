@@ -9,6 +9,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UserResponse {
     pub id: field::Id,
     pub username: String,
@@ -41,6 +42,7 @@ impl From<User> for UserResponse {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UserRequest {
     pub username: Option<String>,
     pub password: Option<String>,
@@ -221,6 +223,7 @@ impl Claims {
 
 /// Jwt response
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct JwtResponse {
     pub access_token: String,
 }

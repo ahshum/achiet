@@ -271,4 +271,3 @@ table "resource" {
     columns = [column.host]
   }
 }
-

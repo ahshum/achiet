@@ -14,14 +14,14 @@ export default function Input(props: InputProps) {
     ...restProps
   } = props
   const {
-    field: { value = "", onChange, onBlur }
+    field: { value, onChange, onBlur }
   } = useController({ name, rules, shouldUnregister, defaultValue, disabled, control })
 
   return (
     <input
       {...restProps}
       className="outline-none rounded border px-2 py-1 bg-[var(--color-input-bg)] border-[var(--color-input-border)] focus:border-[var(--color-input-border-focus)]"
-      value={value}
+      value={value || ""}
       onChange={onChange}
       onBlur={onBlur}
     />

@@ -10,7 +10,7 @@ import useSaveBookmark from "@/hooks/useSaveBookmark"
 import { LinkIcon, XMarkIcon } from "@heroicons/react/16/solid"
 import { useEffect, useMemo } from "react"
 import { FormProvider, useForm } from "react-hook-form"
-import { Link, useParams } from "react-router-dom"
+import { Link, useNavigate, useParams } from "react-router-dom"
 
 export type BookmarkEditProps = {
   isNew?: boolean,
@@ -27,11 +27,11 @@ export default function BookmarkEdit(props: BookmarkEditProps) {
   const [, createLocWithPath] = useLocationPath()
   const [mode] = useLocationMode()
   const { reset, formState } = methods
+  const navigate = useNavigate()
 
-  const isReady = useMemo((): boolean => 
-    isSuccess || isNew,
-    [isSuccess, isNew]
-  )
+  const isReady = useMemo((): boolean => {
+    return isSuccess || isNew
+  }, [isSuccess, isNew])
 
   const currentMode = useMemo((): Mode => {
     if (isNew) {
@@ -55,7 +55,7 @@ export default function BookmarkEdit(props: BookmarkEditProps) {
         keepValues: formState.defaultValues?.id === data.id,
       })
     }
-  }, [isSuccess, data, isNew])
+  }, [isSuccess, data, isNew, reset, formState])
 
   const onSubmit = methods.handleSubmit(async (data) => {
     await mutateAsync(data)

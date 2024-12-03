@@ -1,5 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import useHttpClient from "./useHttpClient";
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import useHttpClient from "./useHttpClient"
 
 export default function useSaveBookmark() {
   const httpClient = useHttpClient()

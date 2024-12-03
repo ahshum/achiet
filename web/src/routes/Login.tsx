@@ -31,11 +31,11 @@ export default function Login(props: LoginProps) {
     if (accessToken) {
       navigate("/")
     }
-  }, [accessToken])
+  }, [accessToken, navigate])
 
   const onSubmit = useCallback(async (data: LoginFormData) => {
     await mutation.mutateAsync(data)
-  }, [])
+  }, [mutation])
 
   return (
     <div className="flex min-h-screen">

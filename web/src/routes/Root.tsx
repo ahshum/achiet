@@ -48,7 +48,7 @@ export default function Root() {
     if (!accessToken) {
       navigate("/login")
     }
-  }, [accessToken])
+  }, [accessToken, navigate])
 
   return (
     <div className="flex flex-row items-stretch h-screen relative max-w-[var(--container-w)] mx-auto">
@@ -75,7 +75,8 @@ export default function Root() {
               >
                 {tag.name}
               </Link>
-          ))}
+            ))
+          }
         </div>
       </div>
 

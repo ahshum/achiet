@@ -1,7 +1,7 @@
-import { FieldErrors, FieldName } from "react-hook-form"
+import { FieldErrors, FieldName, FieldValues } from "react-hook-form"
 
 export type ErrorMessageProps = {
-  name: FieldName<any>,
+  name: FieldName<FieldValues>,
   errors: FieldErrors,
 }
 

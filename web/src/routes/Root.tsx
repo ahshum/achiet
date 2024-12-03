@@ -48,7 +48,7 @@ export default function Root() {
     if (!accessToken) {
       navigate("/login")
     }
-  }, [accessToken, navigate])
+  }, [accessToken])
 
   return (
     <div className="flex flex-row items-stretch h-screen relative max-w-[var(--container-w)] mx-auto">

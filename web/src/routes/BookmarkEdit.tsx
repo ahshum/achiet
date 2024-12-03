@@ -55,7 +55,7 @@ export default function BookmarkEdit(props: BookmarkEditProps) {
         keepValues: formState.defaultValues?.id === data.id,
       })
     }
-  }, [isSuccess, data, isNew, reset, formState])
+  }, [isSuccess, data, isNew])
 
   const onSubmit = methods.handleSubmit(async (data) => {
     const bm = await mutateAsync(data)

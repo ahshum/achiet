@@ -1,15 +1,16 @@
-import { ForwardedRef, forwardRef, ButtonHTMLAttributes } from "react"
+import clsx from "clsx"
+import { ButtonHTMLAttributes } from "react"
 
-export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  component?: React.Component,
-}
+export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement>
 
-export default forwardRef(function Input(props: ButtonProps, ref: ForwardedRef<HTMLButtonElement>) {
+export default function Button(props?: ButtonProps) {
   return (
     <button
       {...props}
-      ref={ref}
-      className="outline-none border p-1 rounded border-[var(--color-input-border)] focus:border-[var(--color-input-border-focus)]"
+      className={clsx(
+        "outline-none border p-1 rounded border-[var(--color-input-border)] focus:border-[var(--color-input-border-focus)]",
+        props?.className,
+      )}
     />
   )
-})
+}

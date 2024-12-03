@@ -11,6 +11,17 @@ type Tagging = {
   value?: string,
 }
 
+function parseTagging(str: string): Tagging {
+  const [path, value] = str.split(":")
+  return { path, value }
+}
+
+function formatTagging(tg: Tagging): string {
+  return tg.value
+    ? `${tg.path}:${tg.value}`
+    : tg.path
+}
+
 export default function TagSelect(props: TagSelectProps) {
   const {
     field: { value, onChange, onBlur }
@@ -22,18 +33,11 @@ export default function TagSelect(props: TagSelectProps) {
     if (!value) {
       return []
     }
-    return value.map((str: string) => {
-      const [path, value] = str.split(":")
-      return { path, value }
-    })
+    return value.map(parseTagging)
   }, [value])
 
   const setSelectedItems = useCallback((newValue?: Tagging[]) => {
-    onChange((newValue || []).map(t => {
-      return t.value
-        ? `${t.path}:${t.value}`
-        : t.path
-    }))
+    onChange((newValue || []).map(formatTagging))
   }, [onChange])
 
   const normalizedInput = useMemo((): string => {
@@ -53,7 +57,6 @@ export default function TagSelect(props: TagSelectProps) {
 
     const items = tags
       .map(t => ({ path: t.path }))
-      .filter(t => !selectedItems.some(s => s.path == t.path))
 
     if (!inputValue) {
       return items
@@ -64,18 +67,29 @@ export default function TagSelect(props: TagSelectProps) {
     return hasExact
       ? matches.filter(t => t.path !== normalizedInput)
       : matches
-  }, [tags, isSuccess, inputValue, selectedItems, hasExact, normalizedInput])
+  }, [tags, isSuccess, inputValue, hasExact, normalizedInput])
 
   const multiSelectionState = useMultipleSelection({
     selectedItems,
-    onStateChange: ({ selectedItems: newSelectedItems, type }) => {
+    onStateChange: ({ type }) => {
       switch (type) {
         case useMultipleSelection.stateChangeTypes.SelectedItemKeyDownBackspace:
         case useMultipleSelection.stateChangeTypes.SelectedItemKeyDownDelete:
         case useMultipleSelection.stateChangeTypes.DropdownKeyDownBackspace:
-        case useMultipleSelection.stateChangeTypes.FunctionRemoveSelectedItem:
-          setSelectedItems(newSelectedItems)
+        case useMultipleSelection.stateChangeTypes.FunctionRemoveSelectedItem: {
+          let idx = multiSelectionState.activeIndex
+          if (idx < 0 && selectedItems.length > 0) {
+            idx = selectedItems.length - 1
+          }
+
+          if (idx > -1) {
+            const item = selectedItems[idx]
+            multiSelectionState.setActiveIndex(-1)
+            setSelectedItems([ ...selectedItems.slice(0, idx), ...selectedItems.slice(idx + 1) ])
+            setInputValue(formatTagging(item))
+          }
           break
+        }
         default:
           break
       }

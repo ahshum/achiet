@@ -58,7 +58,10 @@ export default function BookmarkEdit(props: BookmarkEditProps) {
   }, [isSuccess, data, isNew, reset, formState])
 
   const onSubmit = methods.handleSubmit(async (data) => {
-    await mutateAsync(data)
+    const bm = await mutateAsync(data)
+    if (isNew) {
+      navigate(createLocWithPath(`/bookmark/${bm.id}`))
+    }
   })
 
   return isReady && (

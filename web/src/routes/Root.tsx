@@ -133,7 +133,7 @@ export default function Root() {
                               target="_blank"
                               className="z-10 hover:underline flex items-center"
                             >
-                              {bm.title}
+                              {bm.title || bm.url}
                             </a>
                           ) : (
                             <span>

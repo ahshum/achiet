@@ -3,12 +3,13 @@ import Input from "@/components/form/Input"
 import Label from "@/components/form/Label"
 import Textarea from "@/components/form/Textarea"
 import TagSelect from "@/components/tag/TagSelect"
+import useDeleteBookmark from "@/hooks/useDeleteBookmark"
 import useFetchBookmarkById from "@/hooks/useFetchBookmarkById"
 import useLocationMode, { Mode } from "@/hooks/useLocationMode"
 import useLocationPath from "@/hooks/useLocationPath"
 import useSaveBookmark from "@/hooks/useSaveBookmark"
 import { LinkIcon, XMarkIcon } from "@heroicons/react/16/solid"
-import { useEffect, useMemo } from "react"
+import { useCallback, useEffect, useMemo } from "react"
 import { FormProvider, useForm } from "react-hook-form"
 import { Link, useNavigate, useParams } from "react-router-dom"
 
@@ -28,6 +29,7 @@ export default function BookmarkEdit(props: BookmarkEditProps) {
   const [mode] = useLocationMode()
   const { reset, formState } = methods
   const navigate = useNavigate()
+  const { mutateAsync: deleteAsync } = useDeleteBookmark()
 
   const isReady = useMemo((): boolean => {
     return isSuccess || isNew
@@ -39,6 +41,21 @@ export default function BookmarkEdit(props: BookmarkEditProps) {
     }
     return mode
   }, [mode, isNew])
+
+  const handleSubmit = methods.handleSubmit(async (data) => {
+    const bm = await mutateAsync(data)
+    if (isNew) {
+      navigate(createLocWithPath(`/bookmark/${bm.id}`))
+    }
+  })
+
+  const handleDelete = useCallback(async () => {
+    if (!isSuccess) {
+      return
+    }
+    await deleteAsync(data)
+    navigate(createLocWithPath("/"))
+  }, [data, isSuccess, deleteAsync, createLocWithPath, navigate])
 
   useEffect(() => {
     if (isNew) {
@@ -56,13 +73,6 @@ export default function BookmarkEdit(props: BookmarkEditProps) {
       })
     }
   }, [isSuccess, data, isNew])
-
-  const onSubmit = methods.handleSubmit(async (data) => {
-    const bm = await mutateAsync(data)
-    if (isNew) {
-      navigate(createLocWithPath(`/bookmark/${bm.id}`))
-    }
-  })
 
   return isReady && (
     <div className="flex flex-col py-8 relative">
@@ -96,7 +106,7 @@ export default function BookmarkEdit(props: BookmarkEditProps) {
 
       {currentMode === Mode.Edit && (
         <FormProvider {...methods}>
-          <form className="flex flex-col px-8 gap-4" onSubmit={onSubmit}>
+          <form className="flex flex-col px-8 gap-4" onSubmit={handleSubmit}>
 
             <div className="grid">
               <Label>Title</Label>
@@ -123,6 +133,12 @@ export default function BookmarkEdit(props: BookmarkEditProps) {
             <Button>
               Save
             </Button>
+
+            {!isNew && (
+              <Button type="button" className="text-red-300" onClick={handleDelete}>
+                Delete
+              </Button>
+            )}
 
           </form>
         </FormProvider>

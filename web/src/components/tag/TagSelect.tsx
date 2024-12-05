@@ -69,7 +69,12 @@ export default function TagSelect(props: TagSelectProps) {
       : matches
   }, [tags, isSuccess, inputValue, hasExact, normalizedInput])
 
-  const multiSelectionState = useMultipleSelection({
+  const {
+    activeIndex,
+    getDropdownProps,
+    getSelectedItemProps,
+    setActiveIndex,
+  } = useMultipleSelection({
     selectedItems,
     onStateChange: ({ type }) => {
       switch (type) {
@@ -77,14 +82,14 @@ export default function TagSelect(props: TagSelectProps) {
         case useMultipleSelection.stateChangeTypes.SelectedItemKeyDownDelete:
         case useMultipleSelection.stateChangeTypes.DropdownKeyDownBackspace:
         case useMultipleSelection.stateChangeTypes.FunctionRemoveSelectedItem: {
-          let idx = multiSelectionState.activeIndex
+          let idx = activeIndex
           if (idx < 0 && selectedItems.length > 0) {
             idx = selectedItems.length - 1
           }
 
           if (idx > -1) {
             const item = selectedItems[idx]
-            multiSelectionState.setActiveIndex(-1)
+            setActiveIndex(-1)
             setSelectedItems([ ...selectedItems.slice(0, idx), ...selectedItems.slice(idx + 1) ])
             setInputValue(formatTagging(item))
           }
@@ -96,7 +101,14 @@ export default function TagSelect(props: TagSelectProps) {
     },
   })
 
-  const comboboxState = useCombobox({
+  const {
+    isOpen,
+    openMenu,
+    highlightedIndex,
+    getInputProps,
+    getMenuProps,
+    getItemProps,
+  } = useCombobox({
     items,
     inputValue,
     selectedItem: null,
@@ -130,6 +142,8 @@ export default function TagSelect(props: TagSelectProps) {
     },
   })
 
+  const dsInputProps = getInputProps(getDropdownProps(), { suppressRefError: true })
+
   return (
     <div className="flex relative">
       <div
@@ -145,7 +159,7 @@ export default function TagSelect(props: TagSelectProps) {
           <div
             key={item.path}
             className="border border-white rounded-full px-2 text-sm"
-            {...multiSelectionState.getSelectedItemProps({ selectedItem: item, index })}
+            {...getSelectedItemProps({ selectedItem: item, index })}
           >
             {item.path}
             {item.value && `:${item.value}`}
@@ -153,39 +167,44 @@ export default function TagSelect(props: TagSelectProps) {
         ))}
         <input
           className="outline-none bg-transparent flex-1 min-w-0"
-          {...comboboxState.getInputProps(multiSelectionState.getDropdownProps({
-            onKeyDown: (e) => {
-              if (e.key === "Enter") {
-                if (comboboxState.highlightedIndex < 0 && inputValue) {
-                  const [path, value] = inputValue.split(":")
-                  setSelectedItems([ ...selectedItems, { path, value } ])
-                  setInputValue("")
-                }
-                e.stopPropagation()
-              }
-            },
-          }))}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.currentTarget.value)}
           onBlur={onBlur}
+          onFocus={() => openMenu()}
+          ref={dsInputProps.ref}
+          id={dsInputProps.id}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && highlightedIndex < 0) {
+              if (inputValue) {
+                const [path, value] = inputValue.split(":")
+                setSelectedItems([ ...selectedItems, { path, value } ])
+                setInputValue("")
+              }
+              e.stopPropagation()
+            } else {
+              dsInputProps.onKeyDown?.(e)
+            }
+          }}
         />
       </div>
       <div
         className={clsx(
           "absolute top-full max-h-[120px] overflow-auto",
           "w-full flex flex-col",
-          "shadow shadow-black",
-          "bg-[#202020]",
-          !comboboxState.isOpen && "hidden",
+          "shadow shadow-black text-sm",
+          "bg-[var(--color-tag-select-bg)]",
+          !isOpen && "hidden",
         )}
-        {...comboboxState.getMenuProps()}
+        {...getMenuProps()}
       >
         {items.map((item, index) => (
           <div
             key={item.path}
             className={clsx(
-              "px-4 py-0.5 text-sm",
-              comboboxState.highlightedIndex === index && "bg-[#3f3f3f]",
+              "px-4 py-0.5",
+              highlightedIndex === index && "bg-[var(--color-tag-highlight-bg)]",
             )}
-            {...comboboxState.getItemProps({ item, index })}
+            {...getItemProps({ item, index })}
           >
             {item.path}
           </div>

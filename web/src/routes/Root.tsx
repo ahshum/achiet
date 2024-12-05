@@ -7,15 +7,14 @@ import {
   ChevronRightIcon,
   DocumentIcon,
   PencilSquareIcon,
-  TagIcon,
   UserCircleIcon,
-  XCircleIcon,
 } from "@heroicons/react/16/solid"
 import useFetchTags from "@/hooks/useFetchTags"
 import useFetchBookmarks from "@/hooks/useFetchBookmarks"
 import useLocationTag from "@/hooks/useLocationTag"
 import useLocationPath from "@/hooks/useLocationPath"
 import useLocationMode, { Mode } from "@/hooks/useLocationMode"
+import CurrentPath from "@/components/nav/CurrentPath"
 
 export default function Root() {
   const [accessToken, setAccessToken] = useAtom(accessTokenAtom)
@@ -83,20 +82,7 @@ export default function Root() {
       <div className="grow flex flex-col pl-[calc(var(--sidebar-w)+var(--sidebar-p)*2)]">
         <div className="shadow shadow-black">
           <div className="px-4 py-2 flex items-center">
-            <TagIcon className="size-5" />
-            <div className="pl-1 flex">
-              {currentPath.split("/").map((subPath, idx, subPaths) => (
-                <div key={`${currentPath}-${idx}`} className="flex group">
-                  <div className="px-1">/</div>
-                  <Link to={createLocWithTag(subPaths.slice(0, idx).join("/"))} className="group-hover:outline group-hover:outline-gray-600 rounded relative items-center">
-                    <span>
-                      {subPath}
-                    </span>
-                    <XCircleIcon className="size-5 hidden group-hover:block absolute inset-y-0 left-full" />
-                  </Link>
-                </div>
-              )).slice(1)}
-            </div>
+            <CurrentPath />
 
             <div className="grow"></div>
 

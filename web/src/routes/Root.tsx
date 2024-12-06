@@ -15,6 +15,9 @@ import useLocationTag from "@/hooks/useLocationTag"
 import useLocationPath from "@/hooks/useLocationPath"
 import useLocationMode, { Mode } from "@/hooks/useLocationMode"
 import CurrentPath from "@/components/nav/CurrentPath"
+import { useHotkeys, useHotkeysContext } from "react-hotkeys-hook"
+
+const HOTKEY_SCOPE_ROOT = "root"
 
 export default function Root() {
   const [accessToken, setAccessToken] = useAtom(accessTokenAtom)
@@ -25,6 +28,7 @@ export default function Root() {
   const [, createLocWithPath] = useLocationPath()
   const [, createLocWithMode] = useLocationMode()
   const bmMatch = useMatch("/bookmark/:bookmarkId")
+  const { enableScope, disableScope } = useHotkeysContext()
 
   const currentTags = useMemo((): TagModel[] => {
     return tagsIsSuccess
@@ -43,9 +47,70 @@ export default function Root() {
       : bookmarks.filter(bm => bm.tags.some(tag => tag.split(":")[0] === currentPath))
   }, [bookmarksIsSuccess, bookmarks, isRoot, currentPath])
 
+  const bmIndex = useMemo((): number => {
+    return currentBookmarks.findIndex(bm => bm.id === bmMatch?.params.bookmarkId)
+  }, [currentBookmarks, bmMatch])
+
+  useHotkeys("j", () => {
+    const nextIndex = (bmIndex + 1) % currentBookmarks.length
+    const nextBm = currentBookmarks[nextIndex]
+    navigate({
+      ...createLocWithPath(`/bookmark/${nextBm.id}`),
+      search: createLocWithMode(Mode.View).search,
+    })
+  }, {
+    scopes: HOTKEY_SCOPE_ROOT,
+    preventDefault: true,
+  })
+
+  useHotkeys("k", () => {
+    const prevIndex = (bmIndex - 1 + currentBookmarks.length) % currentBookmarks.length
+    const prevBm = currentBookmarks[prevIndex]
+    navigate({
+      ...createLocWithPath(`/bookmark/${prevBm.id}`),
+      search: createLocWithMode(Mode.View).search,
+    })
+  }, {
+    scopes: HOTKEY_SCOPE_ROOT,
+    preventDefault: true,
+  })
+
+  useHotkeys("o", () => {
+    if (bmIndex < 0 || !currentBookmarks[bmIndex].url) {
+      return
+    }
+    Object.assign(document.createElement('a'), {
+      target: '_blank',
+      rel: 'noopener noreferrer',
+      href: currentBookmarks[bmIndex].url,
+    }).click()
+  }, {
+    scopes: HOTKEY_SCOPE_ROOT,
+    preventDefault: true,
+  })
+
+  useHotkeys("n", () => {
+    navigate(createLocWithPath("/bookmark/new"))
+  }, {
+    scopes: HOTKEY_SCOPE_ROOT,
+    preventDefault: true,
+  })
+
+  useHotkeys("e", () => {
+    navigate(createLocWithMode(Mode.Edit))
+  }, {
+    scopes: HOTKEY_SCOPE_ROOT,
+    preventDefault: true,
+  })
+
   useEffect(() => {
     if (!accessToken) {
       navigate("/login")
+    }
+
+    enableScope(HOTKEY_SCOPE_ROOT)
+    return () => {
+      disableScope(HOTKEY_SCOPE_ROOT)
     }
   }, [accessToken])
 

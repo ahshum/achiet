@@ -26,6 +26,7 @@ export default function BookmarkEdit(props: BookmarkEditProps) {
   })
   const { mutateAsync } = useSaveBookmark()
   const [, createLocWithPath] = useLocationPath()
+  const [, createLocWithMode] = useLocationMode()
   const [mode] = useLocationMode()
   const { reset, formState } = methods
   const navigate = useNavigate()
@@ -47,6 +48,7 @@ export default function BookmarkEdit(props: BookmarkEditProps) {
     if (isNew) {
       navigate(createLocWithPath(`/bookmark/${bm.id}`))
     }
+    navigate(createLocWithMode(Mode.View))
   })
 
   const handleDelete = useCallback(async () => {

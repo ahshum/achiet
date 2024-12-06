@@ -1,12 +1,11 @@
-import { ForwardedRef, forwardRef, LabelHTMLAttributes } from "react"
+import { LabelHTMLAttributes } from "react"
 
 export type LabelProps = LabelHTMLAttributes<HTMLLabelElement>
 
-export default forwardRef(function Input(props: LabelProps, ref: ForwardedRef<HTMLLabelElement>) {
+export default function Label(props?: LabelProps) {
   return (
     <label
       {...props}
-      ref={ref}
     />
   )
-})
+}

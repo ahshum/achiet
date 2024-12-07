@@ -62,7 +62,7 @@ export default function TagSelect(props: TagSelectProps) {
       return items
     }
 
-    const re = new RegExp(".*" + inputValue.split("").join(".*") + ".*")
+    const re = new RegExp(".*" + inputValue.split("").map(c => `\\${c}`).join(".*") + ".*")
     const matches = items.filter(t => re.test(t.path))
     return hasExact
       ? matches.filter(t => t.path !== normalizedInput)

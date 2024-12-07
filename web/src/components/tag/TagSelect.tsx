@@ -4,7 +4,9 @@ import { useCombobox, useMultipleSelection } from "downshift"
 import clsx from "clsx"
 import useFetchTags from "@/hooks/useFetchTags"
 
-export type TagSelectProps = UseControllerProps
+export type TagSelectProps = UseControllerProps & {
+  tabIndex?: number,
+}
 
 type Tagging = {
   path: string,
@@ -24,7 +26,7 @@ function formatTagging(tg: Tagging): string {
 
 export default function TagSelect(props: TagSelectProps) {
   const {
-    field: { value, onChange, onBlur }
+    field: { value, onChange, ref, name }
   } = useController(props)
   const { data: tags, isSuccess } = useFetchTags()
   const [inputValue, setInputValue] = useState<string>("")
@@ -104,6 +106,7 @@ export default function TagSelect(props: TagSelectProps) {
   const {
     isOpen,
     openMenu,
+    closeMenu,
     highlightedIndex,
     getInputProps,
     getMenuProps,
@@ -142,7 +145,7 @@ export default function TagSelect(props: TagSelectProps) {
     },
   })
 
-  const dsInputProps = getInputProps(getDropdownProps(), { suppressRefError: true })
+  const dsInputProps = getInputProps(getDropdownProps({}, { suppressRefError: true }), { suppressRefError: true })
 
   return (
     <div className="flex relative">
@@ -169,10 +172,12 @@ export default function TagSelect(props: TagSelectProps) {
           className="outline-none bg-transparent flex-1 min-w-0"
           value={inputValue}
           onChange={(e) => setInputValue(e.currentTarget.value)}
-          onBlur={onBlur}
+          onBlur={() => closeMenu()}
           onFocus={() => openMenu()}
-          ref={dsInputProps.ref}
-          id={dsInputProps.id}
+          onClick={dsInputProps.onClick}
+          ref={ref}
+          name={name}
+          tabIndex={props.tabIndex}
           onKeyDown={(e) => {
             if (e.key === "Enter" && highlightedIndex < 0) {
               if (inputValue) {

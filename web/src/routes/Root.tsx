@@ -193,7 +193,7 @@ export default function Root() {
                           )}
                         </div>
                         {bm.tags.length > 0 && (
-                          <div className="flex flex-row gap-1 text-sm">
+                          <div className="flex flex-row gap-1 text-sm overflow-x-scroll z-10 scrollbar-hidden">
                             {bm.tags.map(tag => {
                               const path = tag.split(":")[0]
                               if (!isRoot && path === currentPath) {

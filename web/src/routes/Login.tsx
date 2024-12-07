@@ -41,7 +41,7 @@ export default function Login(props: LoginProps) {
     <div className="flex min-h-screen">
       <div className="flex flex-col min-w-[320px] p-2 m-auto">
         <FormProvider {...methods}>
-          <form onSubmit={methods.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
             <h2 className="text-xl">
               <span className="font-bold">
                 Achiet
@@ -75,7 +75,7 @@ export default function Login(props: LoginProps) {
               <ErrorMessage errors={methods.formState.errors} name="password" />
             </div>
 
-            <Button>
+            <Button onClick={methods.handleSubmit(onSubmit)}>
               {isRegister ? "Register" : "Login"}
             </Button>
 
@@ -84,7 +84,7 @@ export default function Login(props: LoginProps) {
             ) : (
               <Link className="text-center" to="/register">Switch to Register</Link>
             )}
-          </form>
+          </div>
         </FormProvider>
       </div>
     </div>

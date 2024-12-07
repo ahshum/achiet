@@ -108,7 +108,7 @@ export default function BookmarkEdit(props: BookmarkEditProps) {
 
       {currentMode === Mode.Edit && (
         <FormProvider {...methods}>
-          <form className="flex flex-col px-8 gap-4" onSubmit={handleSubmit}>
+          <div className="flex flex-col px-8 gap-4">
 
             <div className="grid">
               <Label>Title</Label>
@@ -132,7 +132,7 @@ export default function BookmarkEdit(props: BookmarkEditProps) {
               <Textarea name="description" />
             </div>
 
-            <Button>
+            <Button onClick={handleSubmit}>
               Save
             </Button>
 
@@ -142,7 +142,7 @@ export default function BookmarkEdit(props: BookmarkEditProps) {
               </Button>
             )}
 
-          </form>
+          </div>
         </FormProvider>
       )}
 

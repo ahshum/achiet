@@ -33,7 +33,6 @@ export default function TagSelect(props: TagSelectProps) {
   const {
     inputValue,
     setInputValue,
-    normalizedInput,
     isRoot,
     filterTags,
   } = useTagInput()
@@ -48,10 +47,6 @@ export default function TagSelect(props: TagSelectProps) {
   const setSelectedItems = useCallback((newValue?: Tagging[]) => {
     onChange((newValue || []).map(formatTagging))
   }, [onChange])
-
-  const hasExact = useMemo((): boolean => {
-    return !!tags?.some(t => t.path === normalizedInput)
-  }, [tags, normalizedInput])
 
   const items = useMemo((): Tagging[] => {
     if (!isSuccess) {

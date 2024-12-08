@@ -79,9 +79,9 @@ export default function Root() {
     if (bmIndex < 0 || !currentBookmarks[bmIndex].url) {
       return
     }
-    Object.assign(document.createElement('a'), {
-      target: '_blank',
-      rel: 'noopener noreferrer',
+    Object.assign(document.createElement("a"), {
+      target: "_blank",
+      rel: "noopener noreferrer",
       href: currentBookmarks[bmIndex].url,
     }).click()
   }, {

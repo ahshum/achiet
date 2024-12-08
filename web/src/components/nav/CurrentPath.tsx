@@ -23,7 +23,13 @@ export default function CurrentPath() {
     if (!tags) {
       return []
     }
-    const re = new RegExp(".*" + inputValue.split("").join(".*") + ".*")
+    const escapeChar = (c: string): string => {
+      if ("()[]./\\+=".includes(c)) {
+        return `\\${c}`
+      }
+      return c
+    }
+    const re = new RegExp(["", ...inputValue.split("").map(escapeChar), ""].join(".*"))
     const matches = tags.filter(t => re.test(t.path))
     return matches
   }, [tags, inputValue])
@@ -124,7 +130,7 @@ export default function CurrentPath() {
         <input
           tabIndex={-1}
           className={clsx(
-            "w-0 focus:w-auto rounded px-1",
+            "w-0 focus:w-auto rounded px-0 focus:px-1 focus:min-w-[200px]",
           )}
           ref={inputRef}
           id={dsInputProps.id}

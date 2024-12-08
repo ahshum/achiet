@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo } from "react"
 import { useController, UseControllerProps } from "react-hook-form"
 import { useCombobox, useMultipleSelection } from "downshift"
 import clsx from "clsx"
 import useFetchTags from "@/hooks/useFetchTags"
+import useTagInput from "@/hooks/useTagInput"
 
 export type TagSelectProps = UseControllerProps & {
   tabIndex?: number,
@@ -29,7 +30,13 @@ export default function TagSelect(props: TagSelectProps) {
     field: { value, onChange, ref, name }
   } = useController(props)
   const { data: tags, isSuccess } = useFetchTags()
-  const [inputValue, setInputValue] = useState<string>("")
+  const {
+    inputValue,
+    setInputValue,
+    normalizedInput,
+    isRoot,
+    filterTags,
+  } = useTagInput()
 
   const selectedItems = useMemo((): Tagging[] => {
     if (!value) {
@@ -41,12 +48,6 @@ export default function TagSelect(props: TagSelectProps) {
   const setSelectedItems = useCallback((newValue?: Tagging[]) => {
     onChange((newValue || []).map(formatTagging))
   }, [onChange])
-
-  const normalizedInput = useMemo((): string => {
-    return (inputValue || "")
-      .replace(/^\/*/, "/")
-      .replace(/\/+$/, "")
-  }, [inputValue])
 
   const hasExact = useMemo((): boolean => {
     return !!tags?.some(t => t.path === normalizedInput)
@@ -60,22 +61,11 @@ export default function TagSelect(props: TagSelectProps) {
     const items = tags
       .map(t => ({ path: t.path }))
 
-    if (!inputValue) {
+    if (isRoot) {
       return items
     }
-
-    const escapeChar = (c: string): string => {
-      if ("()[]./\\+=".includes(c)) {
-        return `\\${c}`
-      }
-      return c
-    }
-    const re = new RegExp(["", ...inputValue.split("").map(escapeChar), ""].join(".*"))
-    const matches = items.filter(t => re.test(t.path))
-    return hasExact
-      ? matches.filter(t => t.path !== normalizedInput)
-      : matches
-  }, [tags, isSuccess, inputValue, hasExact, normalizedInput])
+    return filterTags(items)
+  }, [tags, isSuccess, filterTags, isRoot])
 
   const {
     activeIndex,

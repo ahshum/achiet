@@ -1,5 +1,6 @@
 import useFetchTags from "@/hooks/useFetchTags"
 import useLocationTag from "@/hooks/useLocationTag"
+import useTagInput from "@/hooks/useTagInput"
 import { TagIcon, XCircleIcon } from "@heroicons/react/16/solid"
 import clsx from "clsx"
 import { useCombobox } from "downshift"
@@ -14,31 +15,37 @@ export default function CurrentPath() {
   const inputRef = useRef<HTMLInputElement>(null)
   const [currentPath, createLocWithTag,] = useLocationTag()
   const [isInput, setIsInput] = useState<boolean>(false)
-  const [inputValue, setInputValue] = useState<string>("")
+  const {
+    inputValue,
+    setInputValue,
+    normalizedInput,
+    isRoot,
+    filterTags,
+  } = useTagInput()
   const navigate = useNavigate()
   const { disableScope, enableScope } = useHotkeysContext()
   const { data: tags } = useFetchTags()
+
+  const hasExact = useMemo((): boolean => {
+    if (!tags) {
+      return false
+    }
+    return isRoot || tags.some(tag => tag.path === normalizedInput)
+  }, [tags, isRoot, normalizedInput])
 
   const items = useMemo((): TagModel[] => {
     if (!tags) {
       return []
     }
-    const escapeChar = (c: string): string => {
-      if ("()[]./\\+=".includes(c)) {
-        return `\\${c}`
-      }
-      return c
-    }
-    const re = new RegExp(["", ...inputValue.split("").map(escapeChar), ""].join(".*"))
-    const matches = tags.filter(t => re.test(t.path))
-    return matches
-  }, [tags, inputValue])
+    return filterTags(tags)
+  }, [tags, filterTags])
 
   const {
     isOpen,
     getMenuProps,
     getItemProps,
     highlightedIndex,
+    setHighlightedIndex,
     openMenu,
     closeMenu,
     getInputProps,
@@ -147,14 +154,34 @@ export default function CurrentPath() {
             closeMenu()
           }}
           onKeyDown={(e) => {
+            const selectBestPath = (): string => {
+              if (highlightedIndex >= 0) {
+                return items[highlightedIndex].path
+              } else if (inputValue.replace(/[/\s]+/, "") === "") {
+                return "/"
+              } else if (items.length > 0) {
+                return items[0].path
+              }
+              return "/"
+            }
+
             if (e.key === "Escape") {
               e.preventDefault()
               e.currentTarget.blur()
-            } else if (["Enter", "Tab"].includes(e.key) && highlightedIndex < 0) {
+            } else if (e.key === "Tab") {
               e.preventDefault()
-              e.currentTarget.blur()
-              navigate(createLocWithTag(inputValue || "/"))
-              closeMenu()
+              setInputValue(selectBestPath())
+              setHighlightedIndex(-1)
+            } else if (e.key === "Enter") {
+              e.preventDefault()
+              if (highlightedIndex >= 0) {
+                setInputValue(selectBestPath())
+                setHighlightedIndex(-1)
+              } else if (hasExact) {
+                e.currentTarget.blur()
+                navigate(createLocWithTag(inputValue))
+                closeMenu()
+              }
             } else {
               dsInputProps.onKeyDown?.(e)
             }

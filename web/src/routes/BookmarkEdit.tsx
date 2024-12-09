@@ -2,6 +2,7 @@ import Button from "@/components/form/Button"
 import Input from "@/components/form/Input"
 import Label from "@/components/form/Label"
 import Textarea from "@/components/form/Textarea"
+import TagChip from "@/components/tag/TagChip"
 import TagSelect from "@/components/tag/TagSelect"
 import useDeleteBookmark from "@/hooks/useDeleteBookmark"
 import useFetchBookmarkById from "@/hooks/useFetchBookmarkById"
@@ -94,9 +95,7 @@ export default function BookmarkEdit(props: BookmarkEditProps) {
           {data?.tags && data.tags.length > 0 && (
             <div className="flex flex-row flex-wrap pt-4">
               {data?.tags.map(tag => (
-                <div key={tag} className="border border-white rounded-full px-2 text-sm">
-                  {tag}
-                </div>
+                <TagChip key={tag} tag={{ path: tag }} />
               ))}
             </div>
           )}

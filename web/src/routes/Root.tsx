@@ -16,6 +16,7 @@ import useLocationPath from "@/hooks/useLocationPath"
 import useLocationMode, { Mode } from "@/hooks/useLocationMode"
 import CurrentPath from "@/components/nav/CurrentPath"
 import { useHotkeys, useHotkeysContext } from "react-hotkeys-hook"
+import TagChip from "@/components/tag/TagChip"
 
 const HOTKEY_SCOPE_ROOT = "root"
 
@@ -193,18 +194,10 @@ export default function Root() {
                           )}
                         </div>
                         {bm.tags.length > 0 && (
-                          <div className="flex flex-row gap-1 text-sm overflow-x-scroll z-10 scrollbar-hidden">
-                            {bm.tags.map(tag => {
-                              const path = tag.split(":")[0]
-                              if (!isRoot && path === currentPath) {
-                                return null
-                              }
-                              return (
-                                <div key={tag} className="rounded-full border border-white px-2 z-10">
-                                  {path}
-                                </div>
-                              )
-                            })}
+                          <div className="flex flex-row gap-1 overflow-x-scroll z-10 scrollbar-hidden">
+                            {bm.tags.map(tag => (
+                              <TagChip key={tag} tag={{ path: tag }} hideForCurrent hideValue />
+                            ))}
                           </div>
                         )}
                       </div>

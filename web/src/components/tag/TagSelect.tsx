@@ -4,6 +4,7 @@ import { useCombobox, useMultipleSelection } from "downshift"
 import clsx from "clsx"
 import useFetchTags from "@/hooks/useFetchTags"
 import useTagInput from "@/hooks/useTagInput"
+import TagChip from "./TagChip"
 
 export type TagSelectProps = UseControllerProps & {
   tabIndex?: number,
@@ -12,11 +13,12 @@ export type TagSelectProps = UseControllerProps & {
 type Tagging = {
   path: string,
   value?: string,
+  raw: string,
 }
 
 function parseTagging(str: string): Tagging {
   const [path, value] = str.split(":")
-  return { path, value }
+  return { path, value, raw: str }
 }
 
 function formatTagging(tg: Tagging): string {
@@ -54,7 +56,7 @@ export default function TagSelect(props: TagSelectProps) {
     }
 
     const items = tags
-      .map(t => ({ path: t.path }))
+      .map(t => ({ path: t.path, raw: t.path }))
 
     if (isRoot) {
       return items
@@ -65,7 +67,6 @@ export default function TagSelect(props: TagSelectProps) {
   const {
     activeIndex,
     getDropdownProps,
-    getSelectedItemProps,
     setActiveIndex,
   } = useMultipleSelection({
     selectedItems,
@@ -99,6 +100,7 @@ export default function TagSelect(props: TagSelectProps) {
     openMenu,
     closeMenu,
     highlightedIndex,
+    setHighlightedIndex,
     getInputProps,
     getMenuProps,
     getItemProps,
@@ -113,25 +115,6 @@ export default function TagSelect(props: TagSelectProps) {
           return { ...changes, isOpen: true }
         default:
           return changes
-      }
-    },
-    onStateChange: ({ type, selectedItem: newSelectedItem, inputValue: newInputValue }) => {
-      switch (type) {
-        case useCombobox.stateChangeTypes.ItemClick:
-          if (newSelectedItem) {
-            setInputValue(newSelectedItem.path)
-          }
-          break
-        case useCombobox.stateChangeTypes.InputKeyDownEnter:
-          if (newSelectedItem) {
-            setInputValue(newSelectedItem.path)
-          }
-          break
-        case useCombobox.stateChangeTypes.InputChange:
-          setInputValue(newInputValue || "")
-          break
-        default:
-          break
       }
     },
   })
@@ -150,19 +133,21 @@ export default function TagSelect(props: TagSelectProps) {
         )}
       >
         {selectedItems.map((item, index) => (
-          <div
+          <TagChip
             key={item.path}
-            className="border border-white rounded-full px-2 text-sm"
-            {...getSelectedItemProps({ selectedItem: item, index })}
-          >
-            {item.path}
-            {item.value && `:${item.value}`}
-          </div>
+            tag={{ path: item.raw }}
+            className={clsx(
+              activeIndex === index && "outline",
+            )}
+          />
         ))}
         <input
           className="outline-none bg-transparent flex-1 min-w-0"
           value={inputValue}
-          onChange={(e) => setInputValue(e.currentTarget.value)}
+          onChange={(e) => {
+            setActiveIndex(-1)
+            setInputValue(e.currentTarget.value)
+          }}
           onBlur={() => closeMenu()}
           onFocus={() => openMenu()}
           onClick={dsInputProps.onClick}
@@ -170,13 +155,26 @@ export default function TagSelect(props: TagSelectProps) {
           name={name}
           tabIndex={props.tabIndex}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && highlightedIndex < 0) {
-              if (inputValue) {
-                const [path, value] = inputValue.split(":")
-                setSelectedItems([ ...selectedItems, { path, value } ])
-                setInputValue("")
-              }
+            if (e.key === "Enter") {
               e.stopPropagation()
+              if (highlightedIndex >= 0) {
+                setHighlightedIndex(-1)
+                setInputValue(items[highlightedIndex].path)
+              } else if (inputValue) {
+                const [path, value] = inputValue.split(":")
+                if (selectedItems.findIndex(item => item.path === path) < 0) {
+                  setSelectedItems([ ...selectedItems, { path, value, raw: inputValue } ])
+                  setInputValue("")
+                }
+              }
+            } else if (e.key === "ArrowLeft") {
+              if (!inputValue) {
+                setActiveIndex((activeIndex + selectedItems.length + 1) % (selectedItems.length + 1) - 1)
+              }
+            } else if (e.key === "ArrowRight") {
+              if (!inputValue) {
+                setActiveIndex((activeIndex + 2) % (selectedItems.length + 1) - 1)
+              }
             } else {
               dsInputProps.onKeyDown?.(e)
             }

@@ -210,7 +210,7 @@ export default function Root() {
                       </div>
                       {bmMatch?.params.bookmarkId === bm.id && (
                         <div className="absolute right-0 inset-y-0 flex flex-row items-center">
-                          <div className="pr-2">
+                          <div className="">
                             <ChevronRightIcon className="size-5" />
                           </div>
                         </div>

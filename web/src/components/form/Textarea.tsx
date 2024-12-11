@@ -3,25 +3,27 @@ import { useController, UseControllerProps } from "react-hook-form"
 
 export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & UseControllerProps
 
-export default function Textarea(props: TextareaProps) {
+function splitProps(props: TextareaProps): [UseControllerProps, TextareaHTMLAttributes<HTMLTextAreaElement>] {
   const {
-    name,
-    rules,
-    shouldUnregister,
-    defaultValue,
-    disabled,
-    control,
-    ...restProps
+    name, rules, shouldUnregister, defaultValue, control, disabled, ...rest
   } = props
+  return [
+    { name, rules, shouldUnregister, defaultValue, control, disabled },
+    rest,
+  ]
+}
+
+export default function Textarea(props: TextareaProps) {
+  const [fieldProps, textareaProps] = splitProps(props)
   const {
-    field: { value = "", onChange, onBlur }
-  } = useController({ name, rules, shouldUnregister, defaultValue, disabled, control })
+    field: { value, onChange, onBlur }
+  } = useController(fieldProps)
 
   return (
     <textarea
-      {...restProps}
+      {...textareaProps}
       className="outline-none rounded border px-2 py-1 bg-[var(--color-input-bg)] border-[var(--color-input-border)] focus:border-[var(--color-input-border-focus)]"
-      value={value}
+      value={value || ""}
       onChange={onChange}
       onBlur={onBlur}
     />

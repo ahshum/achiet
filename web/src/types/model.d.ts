@@ -1,4 +1,4 @@
-type Id = string;
+type Id = string
 
 type TagModel = {
   id: Nullable<Id>,

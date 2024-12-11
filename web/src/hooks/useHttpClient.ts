@@ -7,7 +7,7 @@ export type UseHttpClientOptions = {
 
 export type HttpClientRequestInit = Omit<RequestInit, "headers" | "body"> & {
   headers?: Record<string, string>,
-  body?: { [key: string]: any },
+  body?: unknown,
 }
 
 export default function useHttpClient(options: UseHttpClientOptions = {}) {

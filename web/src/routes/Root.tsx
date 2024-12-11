@@ -7,15 +7,18 @@ import {
   ChevronRightIcon,
   DocumentIcon,
   PencilSquareIcon,
-  TagIcon,
   UserCircleIcon,
-  XCircleIcon,
 } from "@heroicons/react/16/solid"
 import useFetchTags from "@/hooks/useFetchTags"
 import useFetchBookmarks from "@/hooks/useFetchBookmarks"
 import useLocationTag from "@/hooks/useLocationTag"
 import useLocationPath from "@/hooks/useLocationPath"
 import useLocationMode, { Mode } from "@/hooks/useLocationMode"
+import CurrentPath from "@/components/nav/CurrentPath"
+import { useHotkeys, useHotkeysContext } from "react-hotkeys-hook"
+import TagChip from "@/components/tag/TagChip"
+
+const HOTKEY_SCOPE_ROOT = "root"
 
 export default function Root() {
   const [accessToken, setAccessToken] = useAtom(accessTokenAtom)
@@ -26,6 +29,7 @@ export default function Root() {
   const [, createLocWithPath] = useLocationPath()
   const [, createLocWithMode] = useLocationMode()
   const bmMatch = useMatch("/bookmark/:bookmarkId")
+  const { enableScope, disableScope } = useHotkeysContext()
 
   const currentTags = useMemo((): TagModel[] => {
     return tagsIsSuccess
@@ -44,9 +48,70 @@ export default function Root() {
       : bookmarks.filter(bm => bm.tags.some(tag => tag.split(":")[0] === currentPath))
   }, [bookmarksIsSuccess, bookmarks, isRoot, currentPath])
 
+  const bmIndex = useMemo((): number => {
+    return currentBookmarks.findIndex(bm => bm.id === bmMatch?.params.bookmarkId)
+  }, [currentBookmarks, bmMatch])
+
+  useHotkeys("j", () => {
+    const nextIndex = (bmIndex + 1) % currentBookmarks.length
+    const nextBm = currentBookmarks[nextIndex]
+    navigate({
+      ...createLocWithPath(`/bookmark/${nextBm.id}`),
+      search: createLocWithMode(Mode.View).search,
+    })
+  }, {
+    scopes: HOTKEY_SCOPE_ROOT,
+    preventDefault: true,
+  })
+
+  useHotkeys("k", () => {
+    const prevIndex = (bmIndex - 1 + currentBookmarks.length) % currentBookmarks.length
+    const prevBm = currentBookmarks[prevIndex]
+    navigate({
+      ...createLocWithPath(`/bookmark/${prevBm.id}`),
+      search: createLocWithMode(Mode.View).search,
+    })
+  }, {
+    scopes: HOTKEY_SCOPE_ROOT,
+    preventDefault: true,
+  })
+
+  useHotkeys("o", () => {
+    if (bmIndex < 0 || !currentBookmarks[bmIndex].url) {
+      return
+    }
+    Object.assign(document.createElement("a"), {
+      target: "_blank",
+      rel: "noopener noreferrer",
+      href: currentBookmarks[bmIndex].url,
+    }).click()
+  }, {
+    scopes: HOTKEY_SCOPE_ROOT,
+    preventDefault: true,
+  })
+
+  useHotkeys("n", () => {
+    navigate(createLocWithPath("/bookmark/new"))
+  }, {
+    scopes: HOTKEY_SCOPE_ROOT,
+    preventDefault: true,
+  })
+
+  useHotkeys("e", () => {
+    navigate(createLocWithMode(Mode.Edit))
+  }, {
+    scopes: HOTKEY_SCOPE_ROOT,
+    preventDefault: true,
+  })
+
   useEffect(() => {
     if (!accessToken) {
       navigate("/login")
+    }
+
+    enableScope(HOTKEY_SCOPE_ROOT)
+    return () => {
+      disableScope(HOTKEY_SCOPE_ROOT)
     }
   }, [accessToken])
 
@@ -75,27 +140,15 @@ export default function Root() {
               >
                 {tag.name}
               </Link>
-          ))}
+            ))
+          }
         </div>
       </div>
 
       <div className="grow flex flex-col pl-[calc(var(--sidebar-w)+var(--sidebar-p)*2)]">
         <div className="shadow shadow-black">
           <div className="px-4 py-2 flex items-center">
-            <TagIcon className="size-5" />
-            <div className="pl-1 flex">
-              {currentPath.split("/").map((subPath, idx, subPaths) => (
-                <div key={`${currentPath}-${idx}`} className="flex group">
-                  <div className="px-1">/</div>
-                  <Link to={createLocWithTag(subPaths.slice(0, idx).join("/"))} className="group-hover:outline group-hover:outline-gray-600 rounded relative items-center">
-                    <span>
-                      {subPath}
-                    </span>
-                    <XCircleIcon className="size-5 hidden group-hover:block absolute inset-y-0 left-full" />
-                  </Link>
-                </div>
-              )).slice(1)}
-            </div>
+            <CurrentPath />
 
             <div className="grow"></div>
 
@@ -132,7 +185,7 @@ export default function Root() {
                               target="_blank"
                               className="z-10 hover:underline flex items-center"
                             >
-                              {bm.title}
+                              {bm.title || bm.url}
                             </a>
                           ) : (
                             <span>
@@ -141,18 +194,16 @@ export default function Root() {
                           )}
                         </div>
                         {bm.tags.length > 0 && (
-                          <div className="flex flex-row gap-1 text-sm">
+                          <div className="flex flex-row gap-1 overflow-x-scroll z-10 scrollbar-hidden">
                             {bm.tags.map(tag => (
-                              <div key={tag} className="rounded-full border border-white px-2 z-10">
-                                {tag.split(":")[0]}
-                              </div>
+                              <TagChip key={tag} tag={{ path: tag }} hideForCurrent hideValue />
                             ))}
                           </div>
                         )}
                       </div>
                       {bmMatch?.params.bookmarkId === bm.id && (
                         <div className="absolute right-0 inset-y-0 flex flex-row items-center">
-                          <div className="pr-2">
+                          <div className="">
                             <ChevronRightIcon className="size-5" />
                           </div>
                         </div>

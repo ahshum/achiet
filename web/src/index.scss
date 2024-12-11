@@ -23,9 +23,22 @@
   --color-input-border: #333333;
   --color-input-bg: #2b2a33;
   --color-input-border-focus: #d81b60;
+  --color-tag-select-bg: #202020;
+  --color-tag-highlight-bg: #3f3f3f;
 }
 
 body {
   @apply bg-[#242424];
   @apply text-[#dedede];
+}
+
+@layer utilities {
+  .scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
 }

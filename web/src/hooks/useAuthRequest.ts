@@ -1,7 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
-import useHttpClient from "./useHttpClient";
-import { useAtom } from "jotai";
-import { accessTokenAtom } from "@/shared/state";
+import { useMutation } from "@tanstack/react-query"
+import useHttpClient from "./useHttpClient"
+import { useAtom } from "jotai"
+import { accessTokenAtom } from "@/shared/state"
 
 export type UseAuthRequestOptions = {
   isRegister: boolean,

@@ -1,50 +1,54 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo } from "react"
 import { useController, UseControllerProps } from "react-hook-form"
 import { useCombobox, useMultipleSelection } from "downshift"
 import clsx from "clsx"
 import useFetchTags from "@/hooks/useFetchTags"
+import useTagInput from "@/hooks/useTagInput"
+import TagChip from "./TagChip"
 
-export type TagSelectProps = UseControllerProps
+export type TagSelectProps = UseControllerProps & {
+  tabIndex?: number,
+}
 
 type Tagging = {
   path: string,
   value?: string,
+  raw: string,
+}
+
+function parseTagging(str: string): Tagging {
+  const [path, value] = str.split(":")
+  return { path, value, raw: str }
+}
+
+function formatTagging(tg: Tagging): string {
+  return tg.value
+    ? `${tg.path}:${tg.value}`
+    : tg.path
 }
 
 export default function TagSelect(props: TagSelectProps) {
   const {
-    field: { value, onChange, onBlur }
+    field: { value, onChange, ref, name }
   } = useController(props)
   const { data: tags, isSuccess } = useFetchTags()
-  const [inputValue, setInputValue] = useState<string>("")
+  const {
+    inputValue,
+    setInputValue,
+    isRoot,
+    filterTags,
+  } = useTagInput()
 
   const selectedItems = useMemo((): Tagging[] => {
     if (!value) {
       return []
     }
-    return value.map((str: string) => {
-      const [path, value] = str.split(":")
-      return { path, value }
-    })
+    return value.map(parseTagging)
   }, [value])
 
   const setSelectedItems = useCallback((newValue?: Tagging[]) => {
-    onChange((newValue || []).map(t => {
-      return t.value
-        ? `${t.path}:${t.value}`
-        : t.path
-    }))
+    onChange((newValue || []).map(formatTagging))
   }, [onChange])
-
-  const normalizedInput = useMemo((): string => {
-    return (inputValue || "")
-      .replace(/^\/*/, "/")
-      .replace(/\/+$/, "")
-  }, [inputValue])
-
-  const hasExact = useMemo((): boolean => {
-    return !!tags?.some(t => t.path === normalizedInput)
-  }, [tags, normalizedInput])
 
   const items = useMemo((): Tagging[] => {
     if (!isSuccess) {
@@ -52,37 +56,55 @@ export default function TagSelect(props: TagSelectProps) {
     }
 
     const items = tags
-      .map(t => ({ path: t.path }))
-      .filter(t => !selectedItems.some(s => s.path == t.path))
+      .map(t => ({ path: t.path, raw: t.path }))
 
-    if (!inputValue) {
+    if (isRoot) {
       return items
     }
+    return filterTags(items)
+  }, [tags, isSuccess, filterTags, isRoot])
 
-    const re = new RegExp(".*" + inputValue.split("").join(".*") + ".*")
-    const matches = items.filter(t => re.test(t.path))
-    return hasExact
-      ? matches.filter(t => t.path !== normalizedInput)
-      : matches
-  }, [tags, isSuccess, inputValue, selectedItems, hasExact, normalizedInput])
-
-  const multiSelectionState = useMultipleSelection({
+  const {
+    activeIndex,
+    getDropdownProps,
+    setActiveIndex,
+  } = useMultipleSelection({
     selectedItems,
-    onStateChange: ({ selectedItems: newSelectedItems, type }) => {
+    onStateChange: ({ type }) => {
       switch (type) {
         case useMultipleSelection.stateChangeTypes.SelectedItemKeyDownBackspace:
         case useMultipleSelection.stateChangeTypes.SelectedItemKeyDownDelete:
         case useMultipleSelection.stateChangeTypes.DropdownKeyDownBackspace:
-        case useMultipleSelection.stateChangeTypes.FunctionRemoveSelectedItem:
-          setSelectedItems(newSelectedItems)
+        case useMultipleSelection.stateChangeTypes.FunctionRemoveSelectedItem: {
+          let idx = activeIndex
+          if (idx < 0 && selectedItems.length > 0) {
+            idx = selectedItems.length - 1
+          }
+
+          if (idx > -1) {
+            const item = selectedItems[idx]
+            setActiveIndex(-1)
+            setSelectedItems([ ...selectedItems.slice(0, idx), ...selectedItems.slice(idx + 1) ])
+            setInputValue(formatTagging(item))
+          }
           break
+        }
         default:
           break
       }
     },
   })
 
-  const comboboxState = useCombobox({
+  const {
+    isOpen,
+    openMenu,
+    closeMenu,
+    highlightedIndex,
+    setHighlightedIndex,
+    getInputProps,
+    getMenuProps,
+    getItemProps,
+  } = useCombobox({
     items,
     inputValue,
     selectedItem: null,
@@ -95,26 +117,9 @@ export default function TagSelect(props: TagSelectProps) {
           return changes
       }
     },
-    onStateChange: ({ type, selectedItem: newSelectedItem, inputValue: newInputValue }) => {
-      switch (type) {
-        case useCombobox.stateChangeTypes.ItemClick:
-          if (newSelectedItem) {
-            setInputValue(newSelectedItem.path)
-          }
-          break
-        case useCombobox.stateChangeTypes.InputKeyDownEnter:
-          if (newSelectedItem) {
-            setInputValue(newSelectedItem.path)
-          }
-          break
-        case useCombobox.stateChangeTypes.InputChange:
-          setInputValue(newInputValue || "")
-          break
-        default:
-          break
-      }
-    },
   })
+
+  const dsInputProps = getInputProps(getDropdownProps({}, { suppressRefError: true }), { suppressRefError: true })
 
   return (
     <div className="flex relative">
@@ -128,50 +133,72 @@ export default function TagSelect(props: TagSelectProps) {
         )}
       >
         {selectedItems.map((item, index) => (
-          <div
+          <TagChip
             key={item.path}
-            className="border border-white rounded-full px-2 text-sm"
-            {...multiSelectionState.getSelectedItemProps({ selectedItem: item, index })}
-          >
-            {item.path}
-            {item.value && `:${item.value}`}
-          </div>
+            tag={{ path: item.raw }}
+            className={clsx(
+              activeIndex === index && "outline",
+            )}
+          />
         ))}
         <input
           className="outline-none bg-transparent flex-1 min-w-0"
-          {...comboboxState.getInputProps(multiSelectionState.getDropdownProps({
-            onKeyDown: (e) => {
-              if (e.key === "Enter") {
-                if (comboboxState.highlightedIndex < 0 && inputValue) {
-                  const [path, value] = inputValue.split(":")
-                  setSelectedItems([ ...selectedItems, { path, value } ])
+          value={inputValue}
+          onChange={(e) => {
+            setActiveIndex(-1)
+            setInputValue(e.currentTarget.value)
+          }}
+          onBlur={() => closeMenu()}
+          onFocus={() => openMenu()}
+          onClick={dsInputProps.onClick}
+          ref={ref}
+          name={name}
+          tabIndex={props.tabIndex}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.stopPropagation()
+              if (highlightedIndex >= 0) {
+                setHighlightedIndex(-1)
+                setInputValue(items[highlightedIndex].path)
+              } else if (inputValue) {
+                const [path, value] = inputValue.split(":")
+                if (selectedItems.findIndex(item => item.path === path) < 0) {
+                  setSelectedItems([ ...selectedItems, { path, value, raw: inputValue } ])
                   setInputValue("")
                 }
-                e.stopPropagation()
               }
-            },
-          }))}
-          onBlur={onBlur}
+            } else if (e.key === "ArrowLeft") {
+              if (!inputValue) {
+                setActiveIndex((activeIndex + selectedItems.length + 1) % (selectedItems.length + 1) - 1)
+              }
+            } else if (e.key === "ArrowRight") {
+              if (!inputValue) {
+                setActiveIndex((activeIndex + 2) % (selectedItems.length + 1) - 1)
+              }
+            } else {
+              dsInputProps.onKeyDown?.(e)
+            }
+          }}
         />
       </div>
       <div
         className={clsx(
           "absolute top-full max-h-[120px] overflow-auto",
           "w-full flex flex-col",
-          "shadow shadow-black",
-          "bg-[#202020]",
-          !comboboxState.isOpen && "hidden",
+          "shadow shadow-black text-sm",
+          "bg-[var(--color-tag-select-bg)]",
+          !isOpen && "hidden",
         )}
-        {...comboboxState.getMenuProps()}
+        {...getMenuProps()}
       >
         {items.map((item, index) => (
           <div
             key={item.path}
             className={clsx(
-              "px-4 py-0.5 text-sm",
-              comboboxState.highlightedIndex === index && "bg-[#3f3f3f]",
+              "px-4 py-0.5",
+              highlightedIndex === index && "bg-[var(--color-tag-highlight-bg)]",
             )}
-            {...comboboxState.getItemProps({ item, index })}
+            {...getItemProps({ item, index })}
           >
             {item.path}
           </div>

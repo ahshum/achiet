@@ -40,7 +40,7 @@ case "$cmd" in
     ;;
 
   b|build)
-    node yarn run build
+    node sh -c "yarn && yarn run build"
     rust cargo build --release
     ;;
 esac

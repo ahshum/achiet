@@ -11,7 +11,7 @@ mod tag;
 use app::App;
 
 fn main() {
-    wasm_log::init(wasm_log::Config::default());
+    console_log::init_with_level(log::Level::Debug).expect("console_log");
 
     yew::Renderer::<App>::new().render();
 }

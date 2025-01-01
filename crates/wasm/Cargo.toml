@@ -15,3 +15,7 @@ wasm-bindgen-futures = "0.4.49"
 web-sys = "0.3.76"
 yew = { version = "0.21.0", features = ["csr"] }
 yew-router = "0.18.0"
+
+[profile.release]
+lto = true
+opt-level = "z"

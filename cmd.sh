@@ -43,4 +43,28 @@ case "$cmd" in
     node sh -c "yarn && yarn run build"
     rust cargo build --release
     ;;
+
+  build-wasm)
+    $COMPOSE run --rm -it \
+      -w /app/crates/wasm \
+      node \
+      yarn install
+
+    $COMPOSE run --rm -it \
+      -e "TRUNK_BUILD_RELEASE=true" \
+      -e "TRUNK_BUILD_MINIFY=true" \
+      wasm \
+      trunk build
+
+    $COMPOSE run --rm -it \
+      wasm \
+      sh -c "\
+        for f in ./dist/*.wasm; do \
+          echo wasm-opt \$f; \
+          mv \$f \$f.orig; \
+          wasm-opt -Oz -o \$f \$f.orig; \
+          rm \$f.orig; \
+        done \
+        "
+    ;;
 esac

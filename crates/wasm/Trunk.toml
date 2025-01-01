@@ -1,0 +1,10 @@
+[build]
+target = "index.html"
+dist = "dist"
+
+[serve]
+addresses = ["0.0.0.0"]
+open = false
+
+[[proxy]]
+backend = "http://rust:3399/api/"

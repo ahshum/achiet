@@ -1,5 +1,6 @@
 x-base: &base
   user: 1000:1000
+  tty: true
 
 x-rust: &rust
   build:
@@ -20,13 +21,22 @@ services:
     <<: [*base, *rust]
     command: cargo r
 
+  wasm:
+    <<: [*base, *rust]
+    build:
+      context: ./docker/wasm
+    working_dir: /app/crates/wasm
+    command: trunk serve
+    ports:
+      - 8080:8080
+
   node:
     <<: [*base]
     image: node:22-alpine
-    working_dir: /app
+    working_dir: /app/web
     command: yarn run dev --host
     volumes:
-      - ./web:/app
+      - .:/app
       - ./.data/yarn-cache:/home/node/.cache/yarn
 
   proxy:

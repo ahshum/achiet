@@ -8,7 +8,7 @@ x-rust: &rust
   working_dir: /app
   environment:
     HOME: /tmp
-    RUST_LOG: debug
+    RUST_LOG: info,achiet=debug
     ACHIET_DB_URL: sqlite:app.db
     ACHIET_ADDR: 0.0.0.0:3399
     ACHIET_JWT_SECRET: secret

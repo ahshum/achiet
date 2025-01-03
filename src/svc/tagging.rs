@@ -7,6 +7,7 @@ use crate::{
 };
 use std::collections::HashMap;
 
+/// Tagging service
 pub struct TaggingSvc {
     tag_svc: TagSvc,
     tagging: TaggingRepo,

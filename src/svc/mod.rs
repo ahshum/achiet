@@ -1,3 +1,5 @@
+//! Services for data access interface
+
 mod bookmark;
 mod tag;
 mod tagging;

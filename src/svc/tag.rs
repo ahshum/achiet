@@ -6,6 +6,7 @@ use crate::{
     repo::{TagFilter, TagRepo},
 };
 
+/// Tag service
 pub struct TagSvc {
     tag: TagRepo,
 }

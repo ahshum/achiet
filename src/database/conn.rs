@@ -21,7 +21,6 @@ impl Conn {
     pub async fn connect(url: &str) -> Result<Self, Error> {
         match url {
             ref s if s.starts_with("sqlite:") => Ok(Conn::Sqlite(Sqlite::connect(url).await?)),
-            // ref s if s.starts_with("mock:") => Ok(Box::new(Mock{})),
             _ => Err(Error::Unsupported),
         }
     }

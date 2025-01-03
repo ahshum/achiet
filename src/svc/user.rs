@@ -6,6 +6,7 @@ use crate::{
     repo::{UserFilter, UserRepo},
 };
 
+/// User service
 pub struct UserSvc {
     user: UserRepo,
 }

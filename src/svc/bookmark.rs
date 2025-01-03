@@ -6,6 +6,7 @@ use crate::{
     repo::{BookmarkFilter, BookmarkRepo},
 };
 
+/// Bookmark service
 pub struct BookmarkSvc {
     bookmark: BookmarkRepo,
     tagging_svc: TaggingSvc,

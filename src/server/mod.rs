@@ -1,3 +1,5 @@
+//! Http server
+
 mod api;
 
 use crate::app::AppState;
@@ -6,6 +8,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
+/// Create server with [AppState]
 pub fn with_state(state: AppState) -> axum::Router {
     axum::Router::new()
         .nest("/api", api::with_state(state))
@@ -24,7 +27,7 @@ async fn fallback(uri: Uri) -> Response {
 #[folder = "web/dist/"]
 struct WebDist;
 
-pub struct StaticFile<T>(pub T);
+struct StaticFile<T>(T);
 
 impl<T> IntoResponse for StaticFile<T>
 where

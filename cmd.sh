@@ -19,6 +19,13 @@ atlas() {
 
 cmd="$1" && [ "$#" -ge "1" ] && shift
 case "$cmd" in
+  init)
+    mkdir -p .data
+    cd .data
+    echo "*" > .gitignore
+    mkdir -p cargo home
+    ;;
+
   rust)
     rust "$@"
     ;;
@@ -40,7 +47,7 @@ case "$cmd" in
     ;;
 
   b|build)
-    node sh -c "yarn && yarn run build"
+    node sh -c "pnpm install && pnpm run build"
     rust cargo build --release
     ;;
 
@@ -48,7 +55,7 @@ case "$cmd" in
     $COMPOSE run --rm -it \
       -w /app/crates/wasm \
       node \
-      yarn install
+      pnpm install
 
     $COMPOSE run --rm -it \
       -e "TRUNK_BUILD_RELEASE=true" \

@@ -7,7 +7,7 @@ x-rust: &rust
     context: ./docker/rust
   working_dir: /app
   environment:
-    HOME: /tmp
+    HOME: /home/anon
     RUST_LOG: info,achiet=debug
     ACHIET_DB_URL: sqlite:app.db
     ACHIET_ADDR: 0.0.0.0:3399
@@ -15,6 +15,7 @@ x-rust: &rust
   volumes:
     - .:/app
     - ./.data/cargo:/usr/local/cargo/registry
+    - ./.data/home:/home/anon
 
 services:
   rust:
@@ -32,12 +33,15 @@ services:
 
   node:
     <<: [*base]
-    image: node:22-alpine
+    build:
+      context: ./docker/node
     working_dir: /app/web
     command: yarn run dev --host
+    environment:
+      PNPM_HOME: /app/.data/home/.pnpm
     volumes:
       - .:/app
-      - ./.data/yarn-cache:/home/node/.cache/yarn
+      - ./.data/home:/home/node
 
   proxy:
     image: nginx:alpine

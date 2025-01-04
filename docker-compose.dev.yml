@@ -36,7 +36,7 @@ services:
     build:
       context: ./docker/node
     working_dir: /app/web
-    command: yarn run dev --host
+    command: pnpm run dev --host
     environment:
       PNPM_HOME: /app/.data/home/.pnpm
     volumes:
